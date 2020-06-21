@@ -3,11 +3,12 @@ const childProcess = require('child_process');
 
 function loop() {
   const socket = new WebSocket('ws://hub.homebots.io/hub/ws-shell');
-  const shell = childProcess.spawn('sh', { detached: true, stdio: ['pipe', 'pipe', process.stderr] });
+  const shell = childProcess.spawn('sh', { detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
   const webSocketStream = WebSocket.createWebSocketStream(socket, { encoding: 'utf8' });
 
   webSocketStream.pipe(shell.stdin);
   shell.stdout.pipe(webSocketStream);
+  shell.stderr.pipe(webSocketStream);
 
   shell.on('close', () => socket.close());
 
