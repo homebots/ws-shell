@@ -6,21 +6,12 @@ const socket = new WebSocket('wss://hub.homebots.io/hub/ws-shell');
 
 function run(cmd, _, __, callback) {
   socket.send(cmd);
-  lastCallback = callback;
+  setTimeout(() => callback(null), 1000);
 }
 
-socket.on('message', (buffer) => {
-  let text = buffer.toString('utf-8');
+socket.on('message', (buffer) => console.log(buffer.toString('utf-8')));
 
-  if (lastCallback) {
-    lastCallback(null, text);
-    lastCallback = null;
-  } else {
-    console.log(text);
-  }
-});
-
-const console = repl.start({ 
+const shell = repl.start({ 
   prompt: '$ ', 
   eval: run, 
   writer: (output) => console.log(output),
@@ -30,4 +21,5 @@ const console = repl.start({
   useGlobal: false,
 });
 
-console.on('exit', () => socket.close);
+repl.ignoreUndefined = true;
+shell.on('exit', () => socket.close);
