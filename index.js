@@ -28,6 +28,7 @@ function setup() {
   });
 
   socket.on('close', setup);
+  socket.send('[Connected]');
 }
 
 setup();
