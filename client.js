@@ -2,7 +2,7 @@ const repl = require('repl');
 const WebSocket = require('ws');
 
 const socket = new WebSocket('wss://hub.homebots.io/hub/ws-shell');
-let lastCallback = console.log;
+let lastCallback = () => {};
 
 function run(cmd, _, __, callback) {
   lastCallback = callback;
