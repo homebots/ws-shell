@@ -10,12 +10,18 @@ function setup() {
     console.log('$', String(buffer).trim());
 
     try {
-      const webSocketStream = WebSocket.createWebSocketStream(socket, { encoding: 'utf8' });
+      const webSocketStream = WebSocket.createWebSocketStream(socket, {
+        encoding: 'utf8',
+      });
       const shell = childProcess.exec(String(buffer), { stdio: 'pipe' });
       shell.stdout.pipe(webSocketStream);
       shell.stderr.pipe(webSocketStream);
 
-      // shell.on('close', () => socket.send(''));
+      shell.on('close', () => socket.send('[Disconnected]'));
+
+      if (shell.killed || shell.exitCode !== 0) {
+        socket.send('');
+      }
     } catch (error) {
       socket.send(error.message);
     }
