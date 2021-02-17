@@ -2,6 +2,12 @@ const WebSocket = require('ws');
 const childProcess = require('child_process');
 
 let socket;
+let lastError;
+
+function onError(error) {
+  console.log((error && error.message) || error);
+  lastError = error;
+}
 
 function setup() {
   socket = new WebSocket('wss://hub.homebots.io/hub/ws-shell');
@@ -20,20 +26,26 @@ function setup() {
         encoding: 'utf8',
       });
       const shell = childProcess.exec(command, { stdio: 'pipe' });
+      shell.on('error', onError);
+
       shell.stdout.pipe(webSocketStream);
       shell.stderr.pipe(webSocketStream);
 
-      shell.on('close', () => socket.send('[Disconnected]'));
-
       if (shell.killed || shell.exitCode !== 0) {
-        socket.send('');
+        socket.send('\n');
       }
     } catch (error) {
-      socket.send(error.message);
+      onError(error);
     }
   });
 
   socket.on('close', setup);
+  socket.on('open', () => {
+    if (lastError) {
+      socket.send(String(lastError.message || lastError));
+      lastError = null;
+    }
+  });
 }
 
 setup();
